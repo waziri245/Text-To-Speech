@@ -18,28 +18,33 @@ jobs:
       uses: actions/setup-python@v5
       with:
         python-version: ${{ matrix.python-version }}
-    
+
     - name: Install Linux dependencies
       if: matrix.os == 'ubuntu-latest'
       run: |
         sudo apt-get update
         sudo apt-get install -y xvfb libespeak1
-        
+
     - name: Install Windows dependencies
       if: matrix.os == 'windows-latest'
       run: |
         pip install pywin32 comtypes
-    
+
     - name: Install Python dependencies
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements.txt pytest-xvfb
-    
+
+    - name: Patch root.mainloop for CI (non-destructive)
+      run: |
+        sed -i.bak 's/^root.mainloop()/if __name__ == "__main__":\n    root.mainloop()/' src/text_to_speech.py
+      shell: bash
+
     - name: Run tests on Linux
       if: matrix.os == 'ubuntu-latest'
       run: |
         xvfb-run python -m pytest tests/ -v
-    
+
     - name: Run tests on Windows
       if: matrix.os == 'windows-latest'
       run: |

@@ -194,4 +194,5 @@ save.place(x=730, y=280)
 
 
 # Start the application
-root.mainloop()
+if __name__ == "__main__":
+    root.mainloop()
