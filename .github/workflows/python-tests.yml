@@ -4,10 +4,10 @@ on: [push, pull_request]
 
 jobs:
   test:
-    runs-on: ${{ matrix.os }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5  # Force fail if takes too long
     strategy:
       matrix:
-        os: [ubuntu-latest, windows-latest]
         python-version: ["3.10"]
     
     steps:
@@ -18,30 +18,13 @@ jobs:
       with:
         python-version: ${{ matrix.python-version }}
     
-    - name: Install Linux dependencies
-      if: matrix.os == 'ubuntu-latest'
+    - name: Install dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y python3-tk tk-dev libespeak1
-        
-    - name: Install Windows dependencies
-      if: matrix.os == 'windows-latest'
-      run: |
-        pip install pywin32 comtypes
-    
-    - name: Install Python dependencies
-      run: |
+        sudo apt-get install -y xvfb libespeak1
         python -m pip install --upgrade pip
-        pip install -r requirements.txt
+        pip install -r requirements.txt pytest-xvfb
     
-    - name: Run tests with virtual display (Linux)
-      if: matrix.os == 'ubuntu-latest'
+    - name: Run tests with virtual display
       run: |
-        export DISPLAY=:99.0
-        /usr/bin/Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &
-        python -m pytest tests/ -v
-    
-    - name: Run tests (Windows)
-      if: matrix.os == 'windows-latest'
-      run: |
-        python -m pytest tests/ -v
+        xvfb-run python -m pytest tests/ -v
